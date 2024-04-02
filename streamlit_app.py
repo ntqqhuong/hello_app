@@ -1,18 +1,18 @@
 import streamlit as st
-import pickle
+from tensorflow.keras.models import load_model
 
-# loading the trained model
-model = pickle.load(open('model_cnn_bilstm.h5', 'rb'))
+# Tải lại mô hình đã được huấn luyện
+model = load_model('model_cnn_bilstm.h5')
 
-# create title
-st.title('Đánh giá trải nghiệm người dùng app Viettel ')
-review= st.text_input('Enter a review ')
+# Tạo tiêu đề
+st.title('Đánh giá trải nghiệm người dùng app Viettel')
+review = st.text_input('Nhập đánh giá của bạn')
 
-submit = st.button('Predict')
+submit = st.button('Dự đoán')
 
 if submit:
+    # Dự đoán với mô hình
     prediction = model.predict([review])
 
-    # print(prediction)
-    # st.write(prediction)
-  
+    # Hiển thị dự đoán
+    st.write(prediction)
