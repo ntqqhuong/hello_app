@@ -1,5 +1,4 @@
 import streamlit as st
-from tensorflow.keras.models import load_model
 # loading the trained model
 model = pickle.load(open('model_cnn_bilstm.pickle', 'rb'))
 # Tạo tiêu đề
