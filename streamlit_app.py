@@ -1,17 +1,22 @@
 import streamlit as st
 import pickle
 
-# loading the trained model
-model = pickle.load(open('model_cnn_bilstm.pkl', 'rb'))
+# Load mô hình từ tệp .pkl
+with open('model_cnn_bilstm.pkl', 'rb') as f:
+    model = pickle.load(f)
 
 # create title
 st.title('Predicting sentiment ')
-review= st.text_input('Enter a review ')
+review = st.text_input('Enter a review ')
 
 submit = st.button('Predict')
 
 if submit:
-    prediction = model.predict([review])
+    # Chắc chắn rằng đánh giá được chuyển đổi thành định dạng phù hợp cho mô hình
+    input_data = [review]
 
-    print(prediction)
+    # Thực hiện dự đoán
+    prediction = model.predict(input_data)
+
+    # Hiển thị dự đoán
     st.write(prediction)
