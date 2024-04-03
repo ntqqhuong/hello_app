@@ -1,6 +1,6 @@
 import streamlit as st
 # loading the trained model
-model = pickle.load(open('model_cnn_bilstm.pickle', 'rb'))
+model = pickle.load(open('model_cnn_bilstm.pkl', 'rb'))
 # Tạo tiêu đề
 st.title('Đánh giá trải nghiệm người dùng app Viettel')
 review = st.text_input('Nhập đánh giá của bạn')
