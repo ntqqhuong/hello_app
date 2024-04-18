@@ -44,7 +44,7 @@ def prediction(raw_input, tokenizer, model):
     return result, conf
 
 # Load model and tokenizer
-my_model = load_model('model_cnn_bilstm.pkl')
+my_model = load_model('model_cnn_bilstm.h5')
 my_tokenizer = load_tokenizer("tokenizer_data.pkl")
 
 # Streamlit UI
