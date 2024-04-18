@@ -1,61 +1,58 @@
-import requests
-import re
 import streamlit as st
 import pickle
+import string
+from nltk.corpus import stopwords
+import nltk
+import os
+import tensorflow as tf
+from tensorflow.keras.preprocessing.sequence import pad_sequences
+from pyvi import ViTokenizer
 
+# Load tokenizer function
+def load_tokenizer(tokenizer_path):
+    with open(tokenizer_path, "rb") as file:
+        tokenizer = pickle.load(file)
+    return tokenizer
 
+# Load model function
+def load_model(model_path):
+    model = tf.keras.models.load_model(model_path)
+    return model
 
-model = pickle.load(open('model_cnn_bilstm.pkl', 'rb'))
+# Preprocess raw input function
+def preprocess_raw_input(raw_input, tokenizer):
+    input_text_pre = list(tf.keras.preprocessing.text.text_to_word_sequence(raw_input))
+    input_text_pre = " ".join(input_text_pre)
+    input_text_pre_accent = ViTokenizer.tokenize(input_text_pre)
+    tokenized_data_text = tokenizer.texts_to_sequences([input_text_pre_accent])
+    vec_data = pad_sequences(tokenized_data_text, padding='post', maxlen=120)
+    return vec_data
 
+# Inference model function
+def inference_model(input_feature, model):
+    output = model(input_feature).numpy()[0]
+    result = output.argmax()
+    conf = float(output.max())
+    label_dict = {'Tiêu cực':0, 'Tích cực':1}
+    label = list(label_dict.keys())
+    return label[int(result)], conf
 
-st.title("Predict Sentiment of Movie Review")
-st.markdown(
-"""
-1. I proceeded to build a sentiment classification model for IMDB reviews using TF-IDF.
-2. Utilizing different classification algorithms, the LinearSVC model achieved the highest accuracy of 91.23%.
-3. Then, I employed pickle and streamlit to develop a web application that predicts emotions for any review.
-""")
+# Prediction function
+def prediction(raw_input, tokenizer, model):
+    input_model = preprocess_raw_input(raw_input, tokenizer)
+    result, conf = inference_model(input_model, model)
+    return result, conf
 
-review = st.text_area('Please enter your review 👇👇', key='review_input')
-st.markdown("""
-    <style>
-        label[for="review_input"]::before {
-            content: "Please enter your review ";
-            font-size: 40px !important;
-        }
-    </style>
-""", unsafe_allow_html=True)
+# Load model and tokenizer
+my_model = load_model('model_cnn_bilstm.pkl')
+my_tokenizer = load_tokenizer("tokenizer_data.pkl")
 
+# Streamlit UI
+st.title("Sentiment Analysis")
 
-submit = st.button('Predict')      
-if submit:
-    prediction = model.predict([review])
+input_text = st.text_area("Enter the text")
 
-    if prediction[0] == 'positive':
-        st.success('Positive Review')
-    else:
-        st.warning('Negative Review')
-        
-st.markdown(
-    """
-    <style>
-    body {
-        background-color: #ff1493;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
-
-st.title("Introduce | IMDb ✨✨✨")
-st.markdown(
-"""
-1. IMDb (Internet Movie Database) is an online database of information related to films, television series, podcasts, home videos, video games,
-and streaming content online – including cast, production crew and personal biographies, plot summaries, trivia, ratings, and fan and critical reviews. 
-IMDb began as a fan-operated movie database on the Usenet group "rec.arts.movies" in 1990, and moved to the Web in 1993. 
-Since 1998, it has been owned and operated by IMDb.com, Inc., a subsidiary of Amazon.
-
-2. As of 2019, IMDb was the 52nd most visited website on the Internet, as ranked by Alexa. 
-As of March 2022, the database contained some 10.1 million titles (including television episodes), 11.5 million person records, and 83 million registered users.
-"""
-)
+if st.button('Predict'):
+    result, conf = prediction(input_text, my_tokenizer, my_model)
+    sentiment_label = "Negative" if result == 0 else "Positive"
+    st.write(f"Predicted sentiment: {sentiment_label}, Confidence: {conf}")
